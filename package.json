@@ -1,0 +1,29 @@
+{
+  "name": "orcid-parser",
+  "version": "0.1.0",
+  "description": "A JavaScript library for fetching and parsing ORCID v3.0 publication data",
+  "main": "dist/orcid-parser.js",
+  "types": "dist/orcid-parser.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf dist",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "orcid",
+    "parser",
+    "publications",
+    "works"
+  ],
+  "author": "Sira Pornsiriprasert",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^4.0.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  }
+}
