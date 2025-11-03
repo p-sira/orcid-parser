@@ -90,5 +90,3 @@ groupBy<T extends Record<string, any>>(works: T[], property: keyof T | string): 
 
 - `Error('HTTP error! status: <code>')` for non-OK responses
 - `Error('Request timeout')` when the configured timeout elapses
-
-
