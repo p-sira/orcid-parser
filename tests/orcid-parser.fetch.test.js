@@ -14,7 +14,7 @@ const sampleWorksResponse = {
     {
       'work-summary': [
         {
-          'put-code': 123,
+          "put-code": 123,
           title: { title: { value: 'Paper A' } },
           type: 'journal-article',
           'publication-date': { year: { value: 2021 }, month: { value: 6 }, day: { value: 1 } },
@@ -64,9 +64,10 @@ describe('ORCID fetch methods', () => {
     const works = await client.fetchWorks();
     expect(works).toHaveLength(1);
     expect(works[0]).toMatchObject({
+      putCode: 123,
       title: 'Paper A',
       type: 'journal-article',
-      journalTitle: 'Journal X'
+      journalTitle: 'Journal X',
     });
     expect(global.fetch).toHaveBeenCalledWith(
       'https://pub.orcid.org/v3.0/0000-0002-1825-0097/works',

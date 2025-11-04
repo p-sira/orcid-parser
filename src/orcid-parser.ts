@@ -27,6 +27,7 @@ export type Contributor = {
  * Basic representation of a parsed ORCID work entry.
  */
 export type ParsedWork = {
+  putCode: number;
   title: string;
   type: string;
   publicationYear?: number;
@@ -41,7 +42,6 @@ export type ParsedWork = {
  * including citation info, identifiers, and metadata.
  */
 export type ParsedWorkDetail = ParsedWork & {
-  putCode: number;
   publicationMonth?: number;
   publicationDay?: number;
   externalIds: ExternalId[];
@@ -260,11 +260,12 @@ export class ORCID {
       .map((g: any) => g['work-summary']?.[0])
       .filter(Boolean)
       .map((ws: any) => ({
+        putCode: ws['put-code'],
         title: this._extractTitle(ws.title),
         type: ws.type || 'unknown',
-        publicationYear: ws.year?.value,
+        publicationYear: ws['publication-date']?.year?.value,
         journalTitle: ws['journal-title']?.value,
-        contributors: this._parseContributors(data.contributors),
+        contributors: this._parseContributors(ws.contributors),
         url: ws.url?.value,
         source: ws.source?.['source-name']?.value
       }));
@@ -280,9 +281,9 @@ export class ORCID {
       subtitle: data.title?.subtitle?.value,
       translatedTitle: data.title?.['translated-title']?.value,
       type: data.type || 'unknown',
-      publicationYear: data.year?.value,
-      publicationMonth: data.month?.value,
-      publicationDay: data.day?.value,
+      publicationYear: data['publication-date']?.year?.value,
+      publicationMonth: data['publication-date']?.month?.value,
+      publicationDay: data['publication-date']?.day?.value,
       journalTitle: data['journal-title']?.value,
       shortDescription: data['short-description'],
       citation: this._parseCitation(data.citation),
