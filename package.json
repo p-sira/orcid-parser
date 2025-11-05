@@ -1,14 +1,26 @@
 {
   "name": "orcid-parser",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A JavaScript library for fetching and parsing ORCID v3.0 publication data",
+  "type": "module",
   "main": "dist/index.js",
   "browser": "dist/index.min.js",
   "types": "dist/index.d.ts",
-  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "browser": "./dist/index.min.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsc -p . && esbuild dist/index.js --minify --outfile=dist/index.min.js",
+    "build": "npm run clean && npm run build:types && npm run build:cjs && npm run build:esm && npm run build:browser",
+    "build:cjs": "esbuild src/index.ts --platform=node --format=cjs --outfile=dist/index.cjs",
+    "build:esm": "esbuild src/index.ts --platform=node --format=esm --outfile=dist/index.mjs",
+    "build:browser": "esbuild src/index.ts --bundle --minify --format=umd --global-name=OrcidParser --outfile=dist/index.min.js",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "pretest": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
