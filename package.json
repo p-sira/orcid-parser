@@ -15,11 +15,12 @@
   "keywords": [
     "orcid",
     "parser",
-    "publications",
-    "works"
+    "publication",
+    "research"
   ],
-  "author": "Sira Pornsiriprasert",
+  "author": "Sira Pornsiriprasert <code@psira.me> (https://psira.me/)",
   "license": "BSD-3-Clause",
+  "homepage": "https://github.com/p-sira/orcid-parser",
   "devDependencies": {
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^4.0.6",
