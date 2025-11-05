@@ -1,8 +1,9 @@
 {
   "name": "orcid-parser",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A JavaScript library for fetching and parsing ORCID v3.0 publication data",
   "type": "module",
+  "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
