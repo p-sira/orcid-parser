@@ -8,7 +8,7 @@ import path from 'node:path';
 
 // Import CommonJS module generated from TypeScript build
 // eslint-disable-next-line no-undef
-const { ORCID, WORK_TYPES, filterByType, filterByYearRange, sortByDate, getStatistics, groupBy } = require(path.resolve('dist/index.js'));
+const { ORCID, WORK_TYPES, filterByType, filterByYearRange, sortByDate, getStatistics, groupBy } = require(path.resolve('dist/index.mjs'));
 
 describe('Utility functions', () => {
   const sampleWorks = [

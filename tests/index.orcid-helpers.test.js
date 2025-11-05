@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 
 // eslint-disable-next-line no-undef
-const { ORCID } = require(path.resolve('dist/index.js'));
+const { ORCID } = require(path.resolve('dist/index.mjs'));
 
 describe('ORCID helpers', () => {
   it('sanitizes ORCID URLs to bare IDs', () => {
