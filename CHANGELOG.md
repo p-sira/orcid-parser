@@ -1,4 +1,7 @@
 # 0.1
+## 0.1.4
+- Fix entry point.
+
 ## 0.1.3
 - Reduce package size.
 
