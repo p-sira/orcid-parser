@@ -1,4 +1,9 @@
 # ORCID Parser
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-brightgreen.svg)](https://opensource.org/license/BSD-3-clause)
+[![NPM Package Version](https://img.shields.io/npm/v/orcid-parser)](https://www.npmjs.com/package/orcid-parser)
+[![Package Yearly Downloads](https://img.shields.io/npm/dy/orcid-parser)](https://www.npmjs.com/package/orcid-parser)
+[![Minizipped Size](https://img.shields.io/bundlephobia/minzip/orcid-parser?label=size)](https://bundlephobia.com/package/orcid-parser)
+
 Lightweight ORCID fetching and parsing for JS. Includes helpers to filter, sort, group, and summarize works, plus a simple timeout-enabled fetch layer.
 
 ## Quick start
