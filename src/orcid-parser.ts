@@ -24,31 +24,35 @@ export type Contributor = {
 };
 
 /**
- * Basic representation of a parsed ORCID work entry.
+ * Basic representation of an ORCID work.
  */
-export type ParsedWork = {
+export type WorkSummary = {
   putCode: number;
-  title: string;
-  type: string;
-  publicationYear?: number;
-  journalTitle?: string;
-  contributors: Contributor[];
-  url?: string;
+  createdDate: Date;
+  lastModifiedDate: Date;
   source?: string;
+  title: string;
+  subtitle?: string;
+  translatedTitle?: string;
+  externalIds: ExternalId[];
+  publicationYear?: number;
+  publicationMonth?: number;
+  publicationDay?: number;
+  journalTitle?: string;
+  url?: string;
 };
 
 /**
- * Detailed representation of an ORCID work,
- * including citation info, identifiers, and metadata.
+ * Detailed representation of an ORCID work.
  */
-export type ParsedWorkDetail = ParsedWork & {
-  publicationMonth?: number;
-  publicationDay?: number;
-  externalIds: ExternalId[];
-  subtitle?: string;
-  translatedTitle?: string;
+export type Work = WorkSummary & {
   shortDescription?: string;
-  citation?: { type: string; value: string } | null;
+  citation?: {
+    type?: string;
+    value?: string;
+  };
+  type: WorkType;
+  contributors?: Contributor[];
   languageCode?: string;
   country?: string;
 };
@@ -157,7 +161,8 @@ export const WORK_TYPES = {
   PATENT: 'patent',
   REVIEW: 'review',
   WORKING_PAPER: 'working-paper',
-  OTHER: 'other'
+  OTHER: 'other',
+  UNSUPPORTED: 'unsupported',
 } as const;
 
 export type WorkType = typeof WORK_TYPES[keyof typeof WORK_TYPES];
@@ -197,19 +202,43 @@ export class ORCID {
   }
 
   /**
-   * Fetches all works associated with this ORCID ID.
+   * Fetches all work summaries associated with this ORCID ID.
    */
-  async fetchWorks(): Promise<ParsedWork[]> {
+  async fetchWorkSummaries(): Promise<WorkSummary[]> {
     const data = await this._fetchJson(`${this.baseURL}/${this.orcidId}/works`);
-    return this._parseWorks(data);
+    return this._parseWorkSummaries(data);
   }
 
   /**
    * Fetches detailed information about a specific work by its putCode.
    */
-  async fetchWorkDetails(putCode: number | string): Promise<ParsedWorkDetail> {
+  async fetchWork(putCode: number | string): Promise<Work> {
     const data = await this._fetchJson(`${this.baseURL}/${this.orcidId}/work/${putCode}`);
-    return this._parseWorkDetail(data);
+    return this._parseWork(data);
+  }
+
+  /**
+   * Fetches detailed information about works with putCodes. Max = 100.
+   */
+  async fetchWithCodes(putCodes: number[]): Promise<Work[]> {
+    if (putCodes.length > 100) {
+      throw new Error("fetchWithCodes: Too many put codes (max 100)");
+    }
+    const data = await this._fetchJson(`${this.baseURL}/${this.orcidId}/works/${putCodes.join(',')}`);
+    return (data.bulk || [])
+      .map((entry: any) => this._parseWork(entry.work))
+  }
+
+  /**
+   * Fetches detailed information about the first 100 works of the client.
+   */
+  async fetchWorks(): Promise<Work[]> {
+    const data = await this._fetchJson(`${this.baseURL}/${this.orcidId}/works`);
+    const putCodes = (data.group || [])
+      .flatMap((g: any) => g['work-summary'] || [])
+      .map((ws: any) => Number(ws['put-code']));
+
+    return this.fetchWithCodes(putCodes.slice(0, 100));
   }
 
   /** Returns the sanitized ORCID ID. */
@@ -218,11 +247,11 @@ export class ORCID {
   }
 
   /** Convenience wrappers around global utility functions for this instance. */
-  filterByType(works: ParsedWork[], types: WorkType | WorkType[]): ParsedWork[] { return filterByType(works, types as string | string[]); }
-  filterByYearRange(works: ParsedWork[], start: number, end: number): ParsedWork[] { return filterByYearRange(works, start, end); }
-  sortByDate(works: ParsedWork[], order?: 'asc' | 'desc'): ParsedWork[] { return sortByDate(works, order); }
-  getStatistics(works: ParsedWork[]): WorksStatistics { return getStatistics(works); }
-  groupBy(works: ParsedWork[], property: keyof ParsedWork | string): Record<string, ParsedWork[]> { return groupBy(works, property); }
+  filterByType(works: Work[], types: WorkType | WorkType[]): Work[] { return filterByType(works as unknown as Array<{ type?: string }>, types as string | string[]) as unknown as Work[]; }
+  filterByYearRange(works: Work[], start: number, end: number): Work[] { return filterByYearRange(works as unknown as Array<{ publicationYear?: number }>, start, end) as unknown as Work[]; }
+  sortByDate(works: Work[], order?: 'asc' | 'desc'): Work[] { return sortByDate(works as unknown as Array<{ publicationYear?: number }>, order) as unknown as Work[]; }
+  getStatistics(works: Work[]): WorksStatistics { return getStatistics(works as unknown as Array<{ type?: string; publicationYear?: number }>) as WorksStatistics; }
+  groupBy(works: Work[], property: keyof Work | string): Record<string, Work[]> { return groupBy(works, property); }
 
   /**
    * Internal helper for fetching JSON data with timeout and error handling.
@@ -255,44 +284,53 @@ export class ORCID {
   /**
    * Parses a list of works from ORCID API response data.
    */
-  private _parseWorks(data: any): ParsedWork[] {
+  private _parseWorkSummaries(data: any): WorkSummary[] {
     return (data.group || [])
       .map((g: any) => g['work-summary']?.[0])
       .filter(Boolean)
       .map((ws: any) => ({
-        putCode: ws['put-code'],
+        putCode: Number(ws['put-code']),
+        createdDate: this._parseEpochDate(ws['created-date']?.value),
+        lastModifiedDate: this._parseEpochDate(ws['last-modified-date']?.value),
+        source: ws.source?.['source-name']?.value,
         title: this._extractTitle(ws.title),
-        type: ws.type || 'unknown',
-        publicationYear: ws['publication-date']?.year?.value,
+        subtitle: ws.title?.subtitle?.value,
+        translatedTitle: ws.title?.['translated-title']?.value,
+        externalIds: this._parseExternalIds(ws['external-ids']),
+        publicationYear: Number(ws['publication-date']?.year?.value),
+        publicationMonth: Number(ws['publication-date']?.month?.value),
+        publicationDay: Number(ws['publication-date']?.day?.value),
         journalTitle: ws['journal-title']?.value,
-        contributors: this._parseContributors(ws.contributors),
-        url: ws.url?.value,
-        source: ws.source?.['source-name']?.value
+        url: ws.url?.value
       }));
   }
 
   /**
    * Parses detailed work information from an ORCID API response.
    */
-  private _parseWorkDetail(data: any): ParsedWorkDetail {
+  private _parseWork(data: any): Work {
     return {
-      putCode: data['put-code'],
+      putCode: Number(data['put-code']),
+      createdDate: this._parseEpochDate(data['created-date']?.value),
+      lastModifiedDate: this._parseEpochDate(data['last-modified-date']?.value),
+      source: data.source?.['source-name']?.value,
       title: this._extractTitle(data.title),
       subtitle: data.title?.subtitle?.value,
       translatedTitle: data.title?.['translated-title']?.value,
-      type: data.type || 'unknown',
-      publicationYear: data['publication-date']?.year?.value,
-      publicationMonth: data['publication-date']?.month?.value,
-      publicationDay: data['publication-date']?.day?.value,
+      externalIds: this._parseExternalIds(data['external-ids']),
+      publicationYear: Number(data['publication-date']?.year?.value),
+      publicationMonth: Number(data['publication-date']?.month?.value),
+      publicationDay: Number(data['publication-date']?.day?.value),
       journalTitle: data['journal-title']?.value,
+      url: data.url?.value,
       shortDescription: data['short-description'],
       citation: this._parseCitation(data.citation),
-      url: data.url?.value,
+      type: (Object.values(WORK_TYPES) as unknown as string[]).includes(data.type)
+        ? (data.type as WorkType)
+        : WORK_TYPES.UNSUPPORTED,
       contributors: this._parseContributors(data.contributors),
-      externalIds: this._parseExternalIds(data['external-ids']),
       languageCode: data['language-code'],
-      country: data.country?.value,
-      source: data.source?.['source-name']?.value
+      country: data.country?.value
     };
   }
 
@@ -302,6 +340,16 @@ export class ORCID {
   private _extractTitle(titleObj: any): string {
     return titleObj?.title?.value || 'Untitled';
   }
+
+  /**
+   * Parses ORCID epoch-millis value into a Date. Defaults to Unix epoch when missing.
+   */
+  private _parseEpochDate(value: any): Date {
+    const ms = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(ms) ? new Date(ms) : new Date(0);
+  }
+
+  // (publication date helper removed in favor of numeric Y/M/D fields)
 
   /**
    * Parses external identifiers (e.g., DOI, ISBN) from an ORCID response.
@@ -329,10 +377,10 @@ export class ORCID {
   /**
    * Parses citation metadata from an ORCID work entry.
    */
-  private _parseCitation(citation: any): { type: string; value: string } | null {
+  private _parseCitation(citation: any): { type?: string; value?: string } | undefined {
     return citation
       ? { type: citation['citation-type'], value: citation['citation-value'] }
-      : null;
+      : undefined;
   }
 }
 

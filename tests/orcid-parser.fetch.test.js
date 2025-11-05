@@ -58,8 +58,11 @@ describe('ORCID fetch methods', () => {
   it('fetchWorks returns parsed list', async () => {
     const client = new ORCID('0000-0002-1825-0097', { timeout: 5000, baseURL: 'https://pub.orcid.org/v3.0' });
 
-    // mock global fetch
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(sampleWorksResponse) });
+    // mock two calls: first list (works), then bulk details for putCodes
+    const bulkResponse = { bulk: [{ work: sampleWorkDetailResponse }] };
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(sampleWorksResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(bulkResponse) });
 
     const works = await client.fetchWorks();
     expect(works).toHaveLength(1);
@@ -75,11 +78,11 @@ describe('ORCID fetch methods', () => {
     );
   });
 
-  it('fetchWorkDetails returns parsed object', async () => {
+  it('fetchWork returns parsed object', async () => {
     const client = new ORCID('0000-0002-1825-0097');
     global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(sampleWorkDetailResponse) });
 
-    const detail = await client.fetchWorkDetails(123);
+    const detail = await client.fetchWork(123);
     expect(detail).toMatchObject({ putCode: 123, title: 'Paper A', subtitle: 'Sub', translatedTitle: 'Papier A' });
   });
 
@@ -97,6 +100,40 @@ describe('ORCID fetch methods', () => {
 
     const promise = client.fetchWorks();
     await expect(promise).rejects.toThrow(ORCID.TIMEOUT_ERROR);
+  });
+
+  it('fetchWorkSummaries returns parsed summaries', async () => {
+    const client = new ORCID('0000-0002-1825-0097');
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(sampleWorksResponse) });
+
+    const summaries = await client.fetchWorkSummaries();
+    expect(summaries).toHaveLength(1);
+    expect(summaries[0]).toMatchObject({
+      putCode: 123,
+      title: 'Paper A',
+      publicationYear: 2021,
+      journalTitle: 'Journal X'
+    });
+  });
+
+  it('fetchWithCodes returns parsed list', async () => {
+    const client = new ORCID('0000-0002-1825-0097');
+    const bulkResponse = {
+      bulk: [
+        { work: sampleWorkDetailResponse }
+      ]
+    };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(bulkResponse) });
+
+    const works = await client.fetchWithCodes([123]);
+    expect(works).toHaveLength(1);
+    expect(works[0]).toMatchObject({ putCode: 123, title: 'Paper A', type: 'journal-article' });
+  });
+
+  it('fetchWithCodes throws when more than 100 put codes are provided', async () => {
+    const client = new ORCID('0000-0002-1825-0097');
+    const tooMany = Array.from({ length: 101 }, (_, i) => i + 1);
+    await expect(client.fetchWithCodes(tooMany)).rejects.toThrow('fetchWithCodes: Too many put codes (max 100)');
   });
 });
 
