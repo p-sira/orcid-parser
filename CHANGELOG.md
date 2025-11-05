@@ -1,4 +1,7 @@
 # 0.1
+## 0.1.5
+- Increase entry point compatibility.
+
 ## 0.1.4
 - Fix entry point.
 
