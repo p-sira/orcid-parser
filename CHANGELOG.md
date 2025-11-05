@@ -1,4 +1,7 @@
 # 0.1
+## 0.1.3
+- Reduce package size.
+
 ## 0.1.2
 - Add bundled version.
 
