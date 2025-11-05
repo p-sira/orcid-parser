@@ -19,7 +19,7 @@
     "build": "npm run clean && npm run build:types && npm run build:cjs && npm run build:esm && npm run build:browser",
     "build:cjs": "esbuild src/index.ts --platform=node --format=cjs --outfile=dist/index.cjs",
     "build:esm": "esbuild src/index.ts --platform=node --format=esm --outfile=dist/index.mjs",
-    "build:browser": "esbuild src/index.ts --bundle --minify --format=life --global-name=OrcidParser --outfile=dist/index.min.js",
+    "build:browser": "esbuild src/index.ts --bundle --minify --format=iife --global-name=OrcidParser --outfile=dist/index.min.js",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "pretest": "npm run build",
     "test": "vitest run",
