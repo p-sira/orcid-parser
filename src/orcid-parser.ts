@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+// #region Type Definitions
+
 // Represents an external identifier associated with a work
 // (e.g., DOI, ISBN, arXiv ID, etc.).
 export type ExternalId = {
@@ -57,6 +59,13 @@ export type OrcidStats = {
   byYear: Record<number, number>;
   yearRange: { min: number | null; max: number | null };
 };
+
+export type OrcidClientConfig = {
+  baseURL?: string;
+  timeout?: number;
+};
+
+// #region Pure Functions
 
 export function filterByType(works: Work[], types: string | string[]): Work[] {
   const typeArray = Array.isArray(types) ? types : [types];
@@ -114,10 +123,7 @@ export function groupBy(works: AnyWork[], key: keyof AnyWork): Record<string, An
   }, {});
 }
 
-export type OrcidClientConfig = {
-  baseURL?: string;
-  timeout?: number;
-};
+// #region Orcid Class
 
 /**
  * ORCID API client for fetching and parsing works and work details.
@@ -210,6 +216,8 @@ export class Orcid {
     return getStats(await this.getWorks());
   };
 }
+
+// #region Internal Helpers
 
 function _getPublicationTime(work: AnyWork): number {
   return new Date(work.publicationYear ?? 0, (work.publicationMonth ?? 1) - 1, work.publicationDay ?? 1).getTime();

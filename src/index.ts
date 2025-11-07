@@ -3,4 +3,4 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-export * from "./orcid-parser";
+export * from "./orcid-parser"
