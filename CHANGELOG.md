@@ -17,6 +17,7 @@
 **New Features**
 - `Orcid.getWorks()`: Get the works associated with the ORCID ID. Fetch the works if not cached. 
 - `AnyWork` type: A unified type of `Work` and `WorkSummary`.
+- `WORK_TYPES`: Include all work types supported by ORCID API.
 
 # 0.1
 ## 0.1.5
