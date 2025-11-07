@@ -8,7 +8,10 @@ import path from 'node:path';
 
 // Import CommonJS module generated from TypeScript build
 // eslint-disable-next-line no-undef
-const { ORCID, WORK_TYPES, filterByType, filterByYearRange, sortByDate, getStatistics, groupBy } = require(path.resolve('dist/index.mjs'));
+const { Orcid, filterByType, filterByYearRange, sortByDate, getStats, groupBy } = require(path.resolve('dist/index.mjs'));
+
+// Import WORK_TYPES from constants
+import { WORK_TYPES } from '../src/constants.ts';
 
 describe('Utility functions', () => {
   const sampleWorks = [
@@ -44,8 +47,8 @@ describe('Utility functions', () => {
     expect(sorted[sorted.length - 1].publicationYear).toBe(2024);
   });
 
-  it('getStatistics computes totals, byType, byYear and range', () => {
-    const stats = getStatistics(sampleWorks);
+  it('getStats computes totals, byType, byYear and range', () => {
+    const stats = getStats(sampleWorks);
     expect(stats.total).toBe(5);
     expect(stats.byType[WORK_TYPES.ARTICLE]).toBe(2);
     expect(stats.byYear[2019]).toBe(1);
@@ -59,5 +62,3 @@ describe('Utility functions', () => {
     expect(groups['unknown']).toHaveLength(1);
   });
 });
-
-

@@ -4,32 +4,65 @@
 [![Package Yearly Downloads](https://img.shields.io/npm/dy/orcid-parser)](https://www.npmjs.com/package/orcid-parser)
 [![Minizipped Size](https://img.shields.io/bundlephobia/minzip/orcid-parser?label=size)](https://bundlephobia.com/package/orcid-parser)
 
-Lightweight ORCID fetching and parsing for JS. Includes helpers to filter, sort, group, and summarize works, plus a simple timeout-enabled fetch layer.
+Lightweight ORCID fetcher and parser for JS. Includes helpers to filter, sort, group, and summarize works, plus a simple timeout-enabled fetch layer.
 
 ## Quick start
 
-Install with NPM,
+### Installation
+Install with your favorite package manager:
 
-```shell
+```bash
+# npm
 npm install orcid-parser
+
+# yarn
+yarn add orcid-parser
+
+# pnpm
+pnpm add orcid-parser
+
+# bun
+bun add orcid-parser
 ```
 
-or Yarn,
+### Importing
 
-```shell
-yarn add orcid-parser
+The default import is standalone. The `constants` module is distributed separately for performance. Import `constants` module if you need definitions such as `WORK_TYPES`.
+
+Use in the browser via CDN:
+
+```html
+<script type="module">
+  import { ORCID } from 'https://cdn.jsdelivr.net/npm/orcid-parser@latest/dist/index.mjs';
+  import { WORK_TYPES } from 'https://cdn.jsdelivr.net/npm/orcid-parser@latest/dist/constants.mjs';
+</script>
+```
+
+Use in Node.js/modern bundlers (ESM):
+
+```js
+import { Orcid } from 'orcid-parser';
+import { WORK_TYPES } from 'orcid-parser/constants';
+```
+
+Use in CommonJS (Node.js require):
+
+```js
+const { Orcid } = require('orcid-parser');
+const { WORK_TYPES } = require('orcid-parser/constants');
 ```
 
 ### Fetching works
 
 ```js
-import { ORCID, WORK_TYPES } from 'orcid-parser';
-
 // Create a client instance
-const client = new ORCID('0000-0002-1825-0097');
+const client = new Orcid('0000-0002-1825-0097');
 
-// Fetch all works
+// Fetch all works associated with the ORCID ID.
 const works = await client.fetchWorks();
+
+// This will return the cache if exists. Otherwise, it will fetch.
+const cachedWorks = await client.getWorks();
 console.log(works);
 ```
 
@@ -92,22 +125,22 @@ Output:
 
 ```js
 // Filter works by type
-const articles = client.filterByType(works, WORK_TYPES.ARTICLE);
-const papers = client.filterByType(works, [WORK_TYPES.ARTICLE, WORK_TYPES.PREPRINT]);
+const articles = client.filterByType(WORK_TYPES.ARTICLE);
+const papers = client.filterByType([WORK_TYPES.ARTICLE, WORK_TYPES.PREPRINT]);
 
 // Filter by publication year range
-const recentWorks = client.filterByYearRange(works, 2020, 2024);
+const recentWorks = client.filterByYearRange(2020, 2024);
 
-// Sort works by publication date (newest first by default)
-const sorted = client.sortByDate(works, 'desc');
-const oldestFirst = client.sortByDate(works, 'asc');
+// Sort works by publication date
+const sorted = client.sortByDate(); // sortByDate('desc'): newest first
+const oldestFirst = client.sortByDate('asc');
 ```
 
 #### Statistics and grouping
 
 ```js
 // Get statistics about works
-const stats = client.getStatistics(works);
+const stats = client.getStats(works);
 console.log(stats);
 
 // {
@@ -118,8 +151,8 @@ console.log(stats);
 // }
 
 // Group works by property
-const byType = client.groupBy(works, 'type');
-const byJournal = client.groupBy(works, 'journalTitle');
+const byType = client.groupBy('type');
+const byJournal = client.groupBy('journalTitle');
 ```
 
 #### Standalone utilities
@@ -127,47 +160,31 @@ const byJournal = client.groupBy(works, 'journalTitle');
 You can also use the utility functions independently:
 
 ```js
-import { filterByType, sortByDate, getStatistics, WORK_TYPES } from 'orcid-parser';
+import { Orcid, filterByType, sortByDate, getStats } from 'orcid-parser';
 
-const articles = filterByType(works, WORK_TYPES.ARTICLE);
+const works = await new Orcid('0000-0002-1825-0097').getWorks();
+
+const articles = filterByType(works, 'journal-article');
 const sorted = sortByDate(articles, 'desc');
-const stats = getStatistics(works);
+const stats = getStats(works);
 ```
 
 #### Configuration
 
 ```js
-const client = new ORCID('0000-0002-1825-0097', {
+const client = new Orcid('0000-0002-1825-0097', {
   baseURL: 'https://pub.orcid.org/v3.0',  // default
   timeout: 10000  // 10 seconds (default)
 });
 ```
 
-### API
-
-- **Class `ORCID`**
-  - `constructor(orcidId, config?)`
-    - `orcidId`: string; bare ID or full URL (e.g., `https://orcid.org/0000-...`).
-    - `config.baseURL`: defaults to `https://pub.orcid.org/v3.0`.
-    - `config.timeout`: request timeout in ms (default: `10000`).
-  - `fetchWorkSummaries(): Promise<WorkSummary[]>` - Fetches all work summaries
-  - `fetchWorks(): Promise<Work[]>` - Fetches detailed information for the first 100 works
-  - `fetchWork(putCode: number|string): Promise<Work>` - Fetches detailed information for a specific work
-  - `fetchWithCodes(putCodes: number[]): Promise<Work[]>` - Fetches detailed information for multiple works (max 100)
-  - `getOrcidId(): string`
-  - Utility proxies: `filterByType`, `filterByYearRange`, `sortByDate`, `getStatistics`, `groupBy`
-
-- **Constants**: `WORK_TYPES`
-
-- **Standalone utilities**: `filterByType`, `filterByYearRange`, `sortByDate`, `getStatistics`, `groupBy`
-
-For detailed signatures and shapes, see [docs/API.md](docs/API.md).
+## API
 
 ### Types
 
+#### Work and WorkSummary
 ```ts
-type ExternalId = { type: string; value: string; url?: string; relationship?: string };
-type Contributor = { name?: string; role?: string; sequence?: string };
+// Basic representation of an ORCID work.
 type WorkSummary = {
   putCode: number;
   createdDate: Date;
@@ -183,16 +200,40 @@ type WorkSummary = {
   journalTitle?: string;
   url?: string;
 };
-type Work = WorkSummary & {
+
+// Detailed representation of an ORCID work.
+type Work = {
+  putCode: number;
+  createdDate: Date;
+  lastModifiedDate: Date;
+  source?: string;
+  title: string;
+  subtitle?: string;
+  translatedTitle?: string;
+  externalIds: ExternalId[];
+  publicationYear?: number;
+  publicationMonth?: number;
+  publicationDay?: number;
+  journalTitle?: string;
+  url?: string;
   shortDescription?: string;
-  citation?: { type?: string; value?: string };
-  type: WorkType;
+  citation?: {
+    type?: string;
+    value?: string;
+  };
+  type: string | null;
   contributors?: Contributor[];
   languageCode?: string;
   country?: string;
 };
-type WorkType = typeof WORK_TYPES[keyof typeof WORK_TYPES];
-type WorksStatistics = {
+
+// Unified type for work or work summary
+type AnyWork = Work | WorkSummary;
+```
+
+#### OrcidStats
+```ts
+type OrcidStats = {
   total: number;
   byType: Record<string, number>;
   byYear: Record<number, number>;
@@ -200,7 +241,25 @@ type WorksStatistics = {
 };
 ```
 
-### Testing
+#### ORCID Work Fields
+```ts
+// Represents an external identifier associated with a work
+// (e.g., DOI, ISBN, arXiv ID, etc.).
+type ExternalId = {
+  type: string;
+  value: string;
+  url?: string;
+  relationship?: string;
+};
+
+type Contributor = {
+  name?: string;
+  role?: string;
+  sequence?: string;
+};
+```
+
+## Testing
 
 Run the test suite using Vitest:
 
