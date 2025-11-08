@@ -5,7 +5,7 @@
 [![Minizipped Size](https://img.shields.io/bundlephobia/minzip/orcid-parser?label=size)](https://bundlephobia.com/package/orcid-parser)
 [![Documentation](https://img.shields.io/badge/Docs-github.io-lightgrey)](https://p-sira.github.io/orcid-parser)
 
-Lightweight ORCID fetcher and parser. Includes helpers to filter, sort, group, and summarize works, plus a simple timeout-enabled fetch layer.
+Lightweight ORCID fetcher and parser. Get ORCID work entries of a profile in one line. Includes helpers to filter, sort, group, and summarize works.
 
 ## Quick start
 
