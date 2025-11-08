@@ -1,7 +1,7 @@
 {
   "name": "orcid-parser",
   "version": "0.2.0",
-  "description": "A JavaScript library for fetching and parsing ORCID v3.0 publication data",
+  "description": "A TypeScript library for fetching and parsing ORCID v3.0 publication data",
   "type": "module",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -40,6 +40,7 @@
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^4.0.6",
     "esbuild": "^0.25.12",
+    "typedoc": "^0.28.14",
     "typescript": "^5.9.3",
     "vitest": "^4.0.6"
   },

@@ -10,6 +10,7 @@
 - Rename `WorksStatistics` to `OrcidStats`.
 
 **Improvements**
+- Improve documentation and host it on github.io.
 - Improve installation instruction in README.
 - Reduce package size.
 - `sortByDate` now sort using publication date instead of year.
