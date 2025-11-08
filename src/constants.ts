@@ -1,6 +1,10 @@
-/*
- * ORCID Parser is licensed under The 3-Clause BSD, see LICENSE.
- * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
+/**
+ * Constants for ORCID Parser
+ * 
+ * @packageDocumentation
+ * @license BSD-3-Clause
+ * @author Sira Pornsiriprasert <code@psira.me>
+ * @module constants
  */
 
 /**

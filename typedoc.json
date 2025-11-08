@@ -1,0 +1,6 @@
+{
+  "name": "orcid-parser",
+  "entryPoints": ["src/orcid-parser.ts", "src/constants.ts"],
+  "entryPointStrategy": "resolve",
+  "out": "docs"
+}
